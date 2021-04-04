@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  web:
+    build:
+      context: ./services/web/
+      dockerfile: Dockerfile
+    command: gunicorn --bind 0.0.0.0:8000 microblog:app
+    depends_on:
+      - db
+    links:
+      - db:dbserver
+    env_file:
+      - ./.env
+    expose:
+      - "8000"
+  db:
+    image: mysql/mysql-server:5.7
+    volumes:
+      - mysql_data:data
+    env_file:
+      - ./.env.db
+    ports:
+      - "3306:3306"
+    restart: always
+  nginx:
+    build: ./services/nginx
+    volumes:
+      - static_volume:/home/microblog/web/app/static
+      - media_volume:/home/microblog/web/app/media
+    ports:
+      - "1337:80"
+      - "1336:443"
+    depends_on:
+      - web
+volumes: 
+  mysql_data:
+  static_volume:
+  media_volume:
